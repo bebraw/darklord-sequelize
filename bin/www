@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+'use strict';
+
+var debug = require('debug')('darklord-sequelize');
+
+var config = require('../config');
+var env = process.env.NODE_ENV || 'development';
+var models = require('../models')(config.database[env]);
+var server = require('../server');
+
+
+server({
+    models: models,
+    logExtra: env === 'development',
+    useStubs: env === 'development'
+}, function(app) {
+    var ip = config.ip;
+    var port = config.port;
+
+    app.set('debug', debug);
+    app.set('port', port);
+
+    models.sequelize.sync().then(function() {
+        app.listen(port, ip, function() {
+            console.log('Node (version: %s) %s started on %s:%d ...',
+                process.version, process.argv[1], ip, port);
+        });
+    }).catch(function(err) {
+        console.error(err);
+    });
+});
