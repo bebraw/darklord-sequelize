@@ -1,5 +1,6 @@
 'use strict';
 var express = require('express');
+var darklord = require('darklord');
 var cors = require('cors');
 var helmet = require('helmet');
 var errorHandler = require('errorhandler');
@@ -7,10 +8,10 @@ var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var terminator = require('t1000');
 
+var databaseSvc = require('./lib/databaseSvc');
+
 
 module.exports = function(o, cb) {
-    var models = o.models;
-
     var app = express();
 
     if(o.logExtra) {
@@ -26,6 +27,16 @@ module.exports = function(o, cb) {
     app.use(bodyParser.urlencoded({
         extended: false
     }));
+
+    var router = express.Router();
+    app.use('/', router);
+
+    darklord({
+        router: router,
+        secret: o.config.jwtSecret,
+        databaseSvc: databaseSvc,
+        user: o.models.User,
+    });
 
     app.use(function(err, req, res, next) {
         if(o.logExtra) {

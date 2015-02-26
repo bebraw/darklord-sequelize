@@ -10,6 +10,7 @@ var server = require('../server');
 
 
 server({
+    config: config,
     models: models,
     logExtra: env === 'development',
     useStubs: env === 'development'
