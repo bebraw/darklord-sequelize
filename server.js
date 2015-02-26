@@ -8,10 +8,11 @@ var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var terminator = require('t1000');
 
-var databaseSvc = require('./lib/databaseSvc');
-
 
 module.exports = function(o, cb) {
+    var User = o.models && o.models.User;
+    var databaseSvc = require('./lib/databaseSvc')(User);
+
     var app = express();
 
     if(o.logExtra) {
@@ -35,7 +36,7 @@ module.exports = function(o, cb) {
         router: router,
         secret: o.config.jwtSecret,
         databaseSvc: databaseSvc,
-        user: o.models.User,
+        user: User,
     });
 
     app.use(function(err, req, res, next) {
