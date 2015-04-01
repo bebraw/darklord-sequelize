@@ -1,6 +1,5 @@
 'use strict';
-var jasmine = require('jasmine-node');
-var frisby = require('frisby');
+var request = require('supertest');
 
 var config = require('../config');
 
@@ -13,44 +12,34 @@ var URL = 'http://localhost:3000';
 
 
 describe('Registration', function() {
-    var port = 1351;
-    var s = null;
+    var app = null;
 
     beforeEach(function(done) {
-        // run server
+        // set up server
         server({
             config: config,
             models: models,
-        }, function(app) {
-            s = app.listen(port);
+        }, function(a) {
+            app = a;
 
             // nuke possible db
-            models.sequelize.sync({
-                force: true,
-            }, done);
+            models.sequelize.sync({force: true}).finally(done);
         });
     });
 
-    afterEach(function() {
-        s.close();
-    });
+    it('should be able to register', function(done) {
+        request(app).post('/register', {
+            email: 'myemail@address.com',
+            password: '123456',
+        }).expect('Content-Type', /json/).
+            expect(200, done);
 
-    // XXX: figure out this part
-    //it('should be able to register', function() {
-    frisby.create('POST register').post(URL + '/register', {
-        email: 'myemail@address.com',
-        password: '123456',
-    }).
-    expectStatus(200).
-    expectJSONTypes({
-        token: String,
-        expires: String,
-    }).
-    afterJSON(function(user) {
-        console.log('user', user);
-    }).
-    toss();
-    //});
+        /*
+        expectJSONTypes({
+            token: String,
+            expires: String,
+        })*/
+    });
 });
 
 function noop() {}
